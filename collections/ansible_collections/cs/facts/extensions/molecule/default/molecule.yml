@@ -1,0 +1,18 @@
+dependency:
+  name: galaxy
+  options:
+    requirements-file: requirements.yml
+platforms:
+  - name: molecule-ubi
+    image: registry.access.redhat.com/ubi8/ubi:8.9
+provisioner:
+  name: ansible
+  # config_options:
+  #   defaults:
+  #     role_path: ../../roles
+driver:
+  options:
+    managed: false
+    login_cmd_template: "podman exec -ti {instance} bash"
+    ansible_connection_options:
+      ansible_connection: podman

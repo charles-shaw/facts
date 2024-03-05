@@ -1,0 +1,21 @@
+---
+# tasks file for fact_find
+- name: Display specific facts
+  ansible.builtin.debug:
+    msg: >
+      Host "{{ ansible_facts['fqdn'] }}" running "{{ ansible_facts['distribution'] }}" "{{ ansible_facts['distribution_version'] }}" 
+      has "{{ ansible_facts['processor_count'] }}" processors and "{{ ansible_facts['memtotal_mb'] }}" MiB of total system memory.
+
+- name: Gather facts for all packages
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Dump all package info for troubleshooting
+  ansible.builtin.debug:
+    var: ansible_facts['packages']
+    verbosity: 2
+
+- name: Show the version of httpd if installed
+  ansible.builtin.debug:
+    msg: "httpd version {{ ansible_facts['packages']['httpd'][0]['version'] }}"
+  when: "'httpd' in ansible_facts['packages']"
