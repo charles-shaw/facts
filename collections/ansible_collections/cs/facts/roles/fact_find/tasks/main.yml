@@ -1,21 +1,52 @@
 ---
-# tasks file for fact_find
-- name: Display specific facts
-  ansible.builtin.debug:
-    msg: >
-      Host "{{ ansible_facts['fqdn'] }}" running "{{ ansible_facts['distribution'] }}" "{{ ansible_facts['distribution_version'] }}" 
-      has "{{ ansible_facts['processor_count'] }}" processors and "{{ ansible_facts['memtotal_mb'] }}" MiB of total system memory.
-
+# tasks file for find_facts
 - name: Gather facts for all packages
   ansible.builtin.package_facts:
     manager: auto
+  register: full_package
 
 - name: Dump all package info for troubleshooting
   ansible.builtin.debug:
     var: ansible_facts['packages']
     verbosity: 2
 
-- name: Show the version of httpd if installed
+# - name: Show Package dictionary as list
+#   ansible.builtin.debug:
+#     msg: "{{ ansible_facts['packages'] | map('extract', packages) | flatten | list  | first 10}} "
+#     verbosity: 2
+- name: Search Packages for named packages
   ansible.builtin.debug:
-    msg: "httpd version {{ ansible_facts['packages']['httpd'][0]['version'] }}"
-  when: "'httpd' in ansible_facts['packages']"
+    msg: "{{ ansible_facts['packages'] | json_query(item) }}"
+  loop: "{{ named_packages }}"
+
+- name: Create Dictionary using named packages
+  ansible.builtin.set_fact:
+    found_packages: >-
+      {{
+        found_packages | default([]) +
+        [{
+           item:  ansible_facts['packages'] | json_query(item)
+        }]
+      }}
+  loop: "{{ named_packages }}"
+
+- name: Confirm Dictionary has content
+  ansible.builtin.debug:
+    var: found_packages
+    verbosity: 2
+
+# - name: Use the created fact
+#   ansible.builtin.debug:
+#     msg: |
+#       Package name: {{ item.name }}
+#       Version: {{ item.version }}
+#       Release: {{ item.release }}
+#       Source: {{ item.source }}
+#   loop: "{{ found_packages }}"
+
+- name: Create Report
+  ansible.builtin.template:
+    src: templates/template.system-report.json.j2
+    owner: root
+    mode: '0644'
+    dest: /root/report
