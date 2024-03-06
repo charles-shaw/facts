@@ -1,0 +1,10 @@
+
+{
+  "packages":[
+    {% if found_packages -%}
+    {% for item in found_packages %}
+    {{ item }},
+    {% endfor %}
+    {%- endif %}
+  ]
+}

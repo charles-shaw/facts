@@ -1,2 +1,7 @@
 ---
 # vars file for fact_find
+named_packages:
+  - 'yum'
+  - 'zlib'
+
+output_json_package_info: true
